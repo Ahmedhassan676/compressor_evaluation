@@ -1,6 +1,6 @@
 ﻿property,units
-Capacity at inlet,m³ /hr
-,kg/hr
+Capacity ,nm³ /hr
+Mass Capacity ,kg/hr
 Suction pressure,kg / cm² 
 Suction temperature,°C
 Discharge Pressure,kg / cm² 
