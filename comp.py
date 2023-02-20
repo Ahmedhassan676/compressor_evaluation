@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
-import math
 
 def main():
     html_temp="""
@@ -45,7 +44,7 @@ def main():
         dd_ds = disch_p/suc_p
         p_port = (dd_ds**k_1_k) - 1
         r_mwt = r / m_wt
-        poly_coef = (1-(math.log10(td_ts)/math.log10(dd_ds)))**-1
+        poly_coef = (1-(np.log(td_ts)/np.log(dd_ds)))**-1
         n_1_n = (poly_coef - 1)/ poly_coef
         poly_eff = (poly_coef*(k-1))/(k*(poly_coef-1)) * 100
         adiab_eff = (suc_t/(disch_t-suc_t))*((dd_ds**k_1_k)-1) * 100
