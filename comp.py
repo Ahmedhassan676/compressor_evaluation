@@ -22,22 +22,24 @@ def main():
         </style>
             """
     st.markdown(html_temp, unsafe_allow_html=True)
-    Q_nm3= st.number_input('Capacity (nm3/hr)')
-    suc_p= st.number_input('Suction pressure (kg/cm2.g)')
-    suc_t= st.number_input('Suction temperature (C)')
-    disch_p= st.number_input('Discharge pressure (kg/cm2.g)')
-    disch_t= st.number_input('Discharge temperature (C)')
+    Q_nm3= st.number_input('Capacity (nm3/hr)', key = 'cap_1')
+    suc_p= st.number_input('Suction pressure (kg/cm2.g)', key = 'sucp')
+    suc_t= st.number_input('Suction temperature (C)', key = 'suct')
+    disch_p= st.number_input('Discharge pressure (kg/cm2.g)', key = 'disp')
+    disch_t= st.number_input('Discharge temperature (C)', key = 'dist')
     s1 = st.selectbox('Estimate M.wt, Cp/Cv and Z?',('I already have these values','Yes'), key = 'k_calculations')
     if s1 == 'I already have these values':
-        m_wt= st.number_input('Molecular weight')
-        z= st.number_input('Compressibility factor')
-        k= st.number_input('Cp/Cv')
+        m_wt= st.number_input('Molecular weight' , key = 'mwt')
+        z= st.number_input('Compressibility factor', key = 'z')
+        k= st.number_input('Cp/Cv', key = 'k')
     else:
         url = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/composition.csv'
         df = pd.read_csv(url, index_col=0)
         
         try:
-            if np.sum(df['mol%']) != 100:
+            sum_of_comp = 0
+            
+            while sum_of_comp != 100:
                 c1 = st.number_input('hydrogen%', key = 'c1')
                 c2 = st.number_input('methane%', key = 'c2')
                 c3 = st.number_input('ethane%', key = 'c3')
@@ -62,9 +64,10 @@ def main():
                     for (i,j) in zip(range(len(df['mol%'])),c):
                         if j != None:
                                 df['mol%'][i] = j
-                    st.dataframe(df)
-            else: st.dataframe(df)
-        except TypeError: st.write('your total mol. percent should add up to 100')
+                    st.dataframe(df.sort_values(by='mol%', ascending=False))
+                    sum_of_comp = np.sum(df['mol%'])
+            st.success('This is a success message!', icon="✅")
+        except (TypeError,st.errors.DuplicateWidgetID ): st.write('your total mol. percent should add up to 100')
 
     
     def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
