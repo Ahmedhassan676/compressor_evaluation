@@ -132,6 +132,7 @@ def main():
             df, z, m_wt, k = k_calculations(df,Q_nm3,suc_p,suc_t, disch_p,disch_t)
 
         except (st.errors.DuplicateWidgetID): st.write('your total mol. percent should add up to 100')
+        except (TypeError, KeyError, ZeroDivisionError):st.write('Please Check your data')
 
     
     
