@@ -6,11 +6,11 @@ def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
         m_kg_hr = Q_nm3*m_wt*0.0446098580359918482953956685434
         suc_p = suc_p + 1.03323
         disch_p = disch_p + 1.03323
-        suc_t = suc_t + 273
-        disch_t = disch_t + 273
+        suc_t = suc_t + 273.15
+        disch_t = disch_t + 273.15
         k_1_k = (k-1)/k
         k_k_1 = k/(k-1)
-        r = 847.826
+        r = 8.3143
         td_ts = disch_t/suc_t
         dd_ds = disch_p/suc_p
         p_port = (dd_ds**k_1_k) - 1
@@ -20,7 +20,7 @@ def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
         poly_eff = (k_1_k*np.log(dd_ds)/np.log(td_ts)) * 100
         adiab_eff = (suc_t/(disch_t-suc_t))*((dd_ds**k_1_k)-1) * 100
         td_adiab = suc_t*((disch_p/suc_p)**k_1_k)-273
-        power_kw = ((1/(poly_eff*3672)))*r_mwt*suc_t*z*m_kg_hr*(p_port)*k_k_1
+        power_kw = ((1/(poly_eff*36)))*r_mwt*suc_t*z*m_kg_hr*(p_port)*k_k_1
         return poly_eff, adiab_eff, td_adiab, power_kw,m_kg_hr,dd_ds,poly_coef,td_ts
 def k_calculations(df,Q_nm3,suc_p,suc_t, disch_p,disch_t):
         k = sum(df['mol%']*df['cp/cv']*0.01)
