@@ -17,7 +17,7 @@ def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
         r_mwt = r / m_wt
         poly_coef = (1-(np.log(td_ts)/np.log(dd_ds)))**-1
         n_1_n = (poly_coef - 1)/ poly_coef
-        poly_eff = (poly_coef*(k-1))/(k*(poly_coef-1)) * 100
+        poly_eff = (k_1_k*np.log(dd_ds)/np.log(td_ts)) * 100
         adiab_eff = (suc_t/(disch_t-suc_t))*((dd_ds**k_1_k)-1) * 100
         td_adiab = suc_t*((disch_p/suc_p)**k_1_k)-273
         power_kw = ((1/(80*3672)))*r_mwt*suc_t*z*m_kg_hr*(p_port)*k_k_1
