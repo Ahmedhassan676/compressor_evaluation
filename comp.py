@@ -19,7 +19,7 @@ def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
         n_1_n = (poly_coef - 1)/ poly_coef
         poly_eff = (k_1_k*np.log(dd_ds)/np.log(td_ts)) * 100
         adiab_eff = (suc_t/(disch_t-suc_t))*((dd_ds**k_1_k)-1) * 100
-        td_adiab = suc_t*((disch_p/suc_p)**k_1_k)-273
+        td_adiab = suc_t*((disch_p/suc_p)**k_1_k)-273.15
         power_kw = ((1/(poly_eff*36)))*r_mwt*suc_t*z*m_kg_hr*(p_port)*k_k_1
         return poly_eff, adiab_eff, td_adiab, power_kw,m_kg_hr,dd_ds,poly_coef,td_ts
 def k_calculations(df,Q_nm3,suc_p,suc_t, disch_p,disch_t):
@@ -30,7 +30,7 @@ def k_calculations(df,Q_nm3,suc_p,suc_t, disch_p,disch_t):
         SGr = m_wt/29
         p = [suc_p,disch_p]
         t = [suc_t,disch_t]
-        q_m3hr = [Q_nm3*((t[i]+273)/(273))*((1.03323)/(p[i]+ 1.03323)) for i in range(2)]
+        q_m3hr = [Q_nm3*((t[i]+273.15)/(273.15))*((1.03323)/(p[i]+ 1.03323)) for i in range(2)]
         density_lb_ft3 = [((Q_nm3*m_wt*0.044)/q_m3hr[i])*0.062428 for i in range(2)]
         p = (np.array(p)+1) * 14.2233
         t = np.array(t)*1.8 + 491.67
