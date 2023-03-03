@@ -19,7 +19,7 @@ def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
         n_1_n = (poly_coef - 1)/ poly_coef
         poly_eff = (k_1_k*np.log(dd_ds)/np.log(td_ts)) * 100
         td_adiab = suc_t*(((disch_p/suc_p)**k_1_k)-1)+suc_t-273.15
-        adiab_eff = (((td_adiab+273.15)-suc_t)/(disch_t-suc_t)) * 100
+        adiab_eff = ((suc_t*(((disch_p/suc_p)**k_1_k)-1)/(disch_t-suc_t)) * 100
         power_kw = ((1/(adiab_eff*36)))*r_mwt*suc_t*z*m_kg_hr*(p_port)*k_k_1
         return poly_eff, adiab_eff, td_adiab, power_kw,m_kg_hr,dd_ds,poly_coef,td_ts
 
