@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
+url_1 = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/comp.csv'
+df_comp_table = pd.read_csv(url_1)
 def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
         m_kg_hr = Q_nm3*m_wt*0.0446098580359918482953956685434
         suc_p = suc_p + 1.03323
@@ -23,8 +25,17 @@ def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
         power_kw = ((1/(adiab_eff*36)))*r_mwt*suc_t*z*m_kg_hr*(p_port)*k_k_1
         return poly_eff, adiab_eff, td_adiab, power_kw,m_kg_hr,dd_ds,poly_coef,td_ts
 
-def k_calculations(df,Q_nm3,suc_p,suc_t, disch_p,disch_t):
-        k = np.sum(df['mol%']*df['cp/cv'])*0.01
+def k_calculations(df,df_comp_table,Q_nm3,suc_p,suc_t, disch_p,disch_t):
+        #k = np.sum(df['mol%']*df['cp/cv'])*0.01
+        temperatures = np.array([65.65,106.9])*1.8+ 32 
+        df['y_MCp_suc']=[np.interp(temperatures[0],df_comp_table['Gas'][1:],df_comp_table['{}'.format(compound)][1:]) for compound in df.index]
+        suc_MCp = (df['mol%']*df['y_MCp_suc']).sum()*0.01
+        k_suc = suc_MCp/(suc_MCp-1.986)
+        df['y_MCp_disch']=[np.interp(temperatures[1],df_comp_table['Gas'][1:],df_comp_table['{}'.format(compound)][1:]) for compound in df.index]
+        disch_MCp = (df['mol%']*df['y_MCp_disch']).sum()*0.01
+        k_disch = disch_MCp/(disch_MCp-1.986)
+        k = (k_suc + k_disch)/2
+
         m_wt = np.sum(df['mol%']*df['m.wt'])*0.01
         df1= pd.DataFrame({'mol%':100,'m.wt':m_wt,'cp/cv':k}, index=['Total'])
         df = df[df['mol%'] != 0].sort_values(by='mol%', ascending=False).append(df1)
@@ -36,70 +47,69 @@ def k_calculations(df,Q_nm3,suc_p,suc_t, disch_p,disch_t):
         p = (np.array(p)+1) * 14.2233
         t = np.array(t)*1.8 + 491.67
         Z = [0,0]
+
         
         for j in range(2):
             Z[j] = (m_wt*p[j])/(10.73*t[j]*density_lb_ft3[j])
         z =  sum(Z)/2
         return df, z, m_wt, k
 def choose_composition():
-            url = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/composition.csv'
-            df = pd.read_csv(url, index_col=0)
-        
+            
+            df = pd.DataFrame({'Composition/property':df_comp_table.columns[1:],'mol%':np.zeros(len(df_comp_table.columns)-1), 'm.wt':df_comp_table.iloc[0,1:]})
             try:
                 sum_of_comp = 0 
-                c1,c2,c3,c15,c4,c5,c6,c7,c8,c9,c16,c10,c11,c12,c13,c14,nh3 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-                
+                c1,c2,c3,c15,c4,c5,c6,c7,c8,c9,c16,c10,c11,c13,c14,nh3 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                options_list = [df_comp_table.columns[i] for i in [22,1,4,3,6,11,10,13,15,20,21,24,25,23,18,17]]
                 while sum_of_comp != 100:
                     options = st.multiselect(
-                    'Select your components',
-                    df.index.values)
-                    if df.index.values[0] in options:
+                    'Select your components', options_list
+                    )
+                    if df_comp_table.columns[22] in options:
                         c1 = st.number_input('hydrogen%', key = 'c1')
-                    if df.index.values[1] in options:
+                    if df_comp_table.columns[1] in options:
                         c2 = st.number_input('methane%', key = 'c2')
-                    if df.index.values[2] in options:
+                    if df_comp_table.columns[4] in options:
                         c3 = st.number_input('ethane%', key = 'c3')
-                    if df.index.values[3] in options:
+                    if df_comp_table.columns[3] in options:
                         c15 = st.number_input('ethylene%', key = 'c15')
-                    if df.index.values[4] in options:
+                    if df_comp_table.columns[6] in options:
                         c4 = st.number_input('propane%', key = 'c4')
-                    if df.index.values[5] in options:
+                    if df_comp_table.columns[11] in options:
                         c5 = st.number_input('nbutane%', key = 'c5')
-                    if df.index.values[6] in options:
+                    if df_comp_table.columns[10] in options:
                         c6 = st.number_input('isobutane%', key = 'c6')
-                    if df.index.values[7] in options:
+                    if df_comp_table.columns[13] in options:
                         c7 = st.number_input('pentane%', key = 'c7')
-                    if df.index.values[8] in options:
+                    if df_comp_table.columns[15] in options:
                         c8 = st.number_input('hexane%', key = 'c8')
-                    if df.index.values[9] in options:
+                    if df_comp_table.columns[20] in options:
                         c9 = st.number_input('Oxygen%', key = 'c9')
-                    if df.index.values[10] in options:
+                    if df_comp_table.columns[21] in options:
                         c16 = st.number_input('nitrogen%', key = 'c16')
-                    if df.index.values[11] in options:
+                    if df_comp_table.columns[24] in options:
                         c10 = st.number_input('carbon monoxide%', key = 'c10')
-                    if df.index.values[12] in options:
+                    if df_comp_table.columns[25] in options:
                         c11 = st.number_input('carbon dioxide%', key = 'c11')
-                    if df.index.values[13] in options:
-                        c12 = st.number_input('sulphur dioxide%', key = 'c12')
-                    if df.index.values[14] in options:
+                    if df_comp_table.columns[23] in options:
                         c13 = st.number_input('hydrogen sulphide%', key = 'c13')
-                    if df.index.values[15] in options:
+                    if df_comp_table.columns[18] in options:
                         c14 = st.number_input('air%', key = 'c14')
-                    if df.index.values[16] in options:
+                    if df_comp_table.columns[17] in options:
                         nh3 = st.number_input('Ammonia%', key = 'nh3')
-                    if c1 or c2 or c3 or c15 or c4 or c5 or c6 or c7 or c8 or c9 or c16 or c10 or c11 or c12 or c13 or c14 or nh3:
+                    if c1 or c2 or c3 or c15 or c4 or c5 or c6 or c7 or c8 or c9 or c16 or c10 or c11 or c13 or c14 or nh3:
                         c = []
-                        for i in (c1,c2,c3,c15,c4,c5,c6,c7,c8,c9,c16,c10,c11,c12,c13,c14,nh3):
+                        for i in (c1,c2,c3,c15,c4,c5,c6,c7,c8,c9,c16,c10,c11,c13,c14,nh3):
                             c.append(i)
                         
-                        for (i,j) in zip(range(len(df['mol%'])),c):
+                        for (i,j) in zip(options_list,c):
                             if j != None:
-                                    df['mol%'][i] = j
+                                    df.loc[i,'mol%'] = j
                         
                         sum_of_comp = np.sum(df['mol%'])
+                        
                 st.success('Composition in Mol. percent completed!', icon="✅")
                 
-                return df
+                return df[df['mol%'] != 0]
 
             except (ValueError, st.errors.DuplicateWidgetID): pass
             except (TypeError, KeyError, ZeroDivisionError):st.write('Please Check your data')
@@ -140,8 +150,9 @@ def main():
         else:
             try:
                 df_comp = choose_composition()
-                df_comp, z, m_wt, k = k_calculations(df_comp,Q_nm3,suc_p,suc_t, disch_p,disch_t)
+                df_comp, z, m_wt, k = k_calculations(df_comp,df_comp_table,Q_nm3,suc_p,suc_t, disch_p,disch_t)
             except (ValueError,TypeError, KeyError, ZeroDivisionError):st.write('your total mol. percent should add up to 100')
+            except AttributeError: pass
     
         if st.button("Reveal Calculations", key = 'calculations_table'):
                 try:
@@ -173,7 +184,7 @@ def main():
                 url = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/compressor_table.csv'
                 df = pd.read_csv(url, index_col=0)
                 for i in range(2):
-                    df_comp_new, Z_i, M_wt_i,K_i = k_calculations(df_comp,edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i])
+                    df_comp_new, Z_i, M_wt_i,K_i = k_calculations(df_comp,df_comp_table,edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i])
                     Z_multi[i] = Z_i
                     m_wt_multi[i] = M_wt_i
                     k_multi[i] = K_i
