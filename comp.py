@@ -24,68 +24,31 @@ def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
         return poly_eff, adiab_eff, td_adiab, power_kw,m_kg_hr,dd_ds,poly_coef,td_ts
 
 def k_calculations(df,Q_nm3,suc_p,suc_t, disch_p,disch_t):
-        k = sum(df['mol%']*df['cp/cv'])*0.01
-        m_wt = sum(df['mol%']*df['m.wt'])*0.01
+        k = np.sum(df['mol%']*df['cp/cv'])*0.01
+        m_wt = np.sum(df['mol%']*df['m.wt'])*0.01
         df1= pd.DataFrame({'mol%':100,'m.wt':m_wt,'cp/cv':k}, index=['Total'])
         df = df[df['mol%'] != 0].sort_values(by='mol%', ascending=False).append(df1)
         SGr = m_wt/29
         p = [suc_p,disch_p]
         t = [suc_t,disch_t]
-        q_m3hr = [Q_nm3*((t[i]+273.15)/(273.15))*((1.03323)/(p[i]+ 1.03323)) for i in range(2)]
-        density_lb_ft3 = [((Q_nm3*m_wt*0.044)/q_m3hr[i])*0.062428 for i in range(2)]
+        q_m3hr = [Q_nm3*((t[num]+273.15)/(273.15))*((1.03323)/(p[num]+ 1.03323)) for num in range(2)]
+        density_lb_ft3 = [((Q_nm3*m_wt*0.044)/q_m3hr[num1])*0.062428 for num1 in range(2)]
         p = (np.array(p)+1) * 14.2233
         t = np.array(t)*1.8 + 491.67
         Z = [0,0]
         
-        for i in range(2):
-            #if p[i] <= 100:
-             #   Z[i] = 1
-            #else: Z[i] = 1/(1+((p[i]*34400*(10**(1.85*SGr)))/(t[i]**3.825)))
-            Z[i] = (m_wt*p[i])/(10.73*t[i]*density_lb_ft3[i])
+        for j in range(2):
+            Z[j] = (m_wt*p[j])/(10.73*t[j]*density_lb_ft3[j])
         z =  sum(Z)/2
-        return st.dataframe(df), z, m_wt, k
-
-def main():
-    html_temp="""
-        <div style="background-color:lightblue;padding:16px">
-        <h2 style="color:black"; text-align:center> Compressor Performance Evaluation </h2>
-        </div>
-        <style>
-        table {
-        font-family: arial, sans-serif;
-        border-collapse: collapse;
-        width: 100%;
-        }
-
-        td, th {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 8px;
-        }
-        </style>
-            """
-    st.markdown(html_temp, unsafe_allow_html=True)
-    stage_no = st.selectbox('Number of compression stages?',(1,2,3,4), key = 'test_type')
-    if stage_no == 1:
-        
-    
-        Q_nm3= st.number_input('Capacity (nm3/hr)', key = 'cap_1')
-        suc_p= st.number_input('Suction pressure (kg/cm2.g)', key = 'sucp')
-        suc_t= st.number_input('Suction temperature (C)', key = 'suct')
-        disch_p= st.number_input('Discharge pressure (kg/cm2.g)', key = 'disp')
-        disch_t= st.number_input('Discharge temperature (C)', key = 'dist')
-        s1 = st.selectbox('Estimate M.wt, Cp/Cv and Z?',('I already have these values','Yes'), key = 'k_calculations')
-        if s1 == 'I already have these values':
-            m_wt= st.number_input('Molecular weight' , key = 'mwt')
-            z= st.number_input('Compressibility factor', key = 'z')
-            k= st.number_input('Cp/Cv', key = 'k')
-        else:
+        return df, z, m_wt, k
+def choose_composition():
             url = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/composition.csv'
             df = pd.read_csv(url, index_col=0)
         
             try:
                 sum_of_comp = 0 
                 c1,c2,c3,c15,c4,c5,c6,c7,c8,c9,c16,c10,c11,c12,c13,c14,nh3 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                
                 while sum_of_comp != 100:
                     options = st.multiselect(
                     'Select your components',
@@ -135,13 +98,50 @@ def main():
                         
                         sum_of_comp = np.sum(df['mol%'])
                 st.success('Composition in Mol. percent completed!', icon="✅")
-                df, z, m_wt, k = k_calculations(df,Q_nm3,suc_p,suc_t, disch_p,disch_t)
+                
+                return df
 
-            except (ValueError, st.errors.DuplicateWidgetID): st.write('your total mol. percent should add up to 100')
+            except (ValueError, st.errors.DuplicateWidgetID): pass
             except (TypeError, KeyError, ZeroDivisionError):st.write('Please Check your data')
+def main():
+    html_temp="""
+        <div style="background-color:lightblue;padding:16px">
+        <h2 style="color:black"; text-align:center> Compressor Performance Evaluation </h2>
+        </div>
+        <style>
+        table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        }
 
+        td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        }
+        </style>
+            """
+    st.markdown(html_temp, unsafe_allow_html=True)
+    stage_no = st.selectbox('Number of compression stages?',(1,2,3,4), key = 'test_type')
+    if stage_no == 1:
+        
     
-    
+        Q_nm3= st.number_input('Capacity (nm3/hr)', key = 'cap_1')
+        suc_p= st.number_input('Suction pressure (kg/cm2.g)', key = 'sucp')
+        suc_t= st.number_input('Suction temperature (C)', key = 'suct')
+        disch_p= st.number_input('Discharge pressure (kg/cm2.g)', key = 'disp')
+        disch_t= st.number_input('Discharge temperature (C)', key = 'dist')
+        s1 = st.selectbox('Estimate M.wt, Cp/Cv and Z?',('I already have these values','Yes'), key = 'k_calculations')
+        if s1 == 'I already have these values':
+            m_wt= st.number_input('Molecular weight' , key = 'mwt')
+            z= st.number_input('Compressibility factor', key = 'z')
+            k= st.number_input('Cp/Cv', key = 'k')
+        else:
+            try:
+                df_comp = choose_composition()
+                df_comp, z, m_wt, k = k_calculations(df_comp,Q_nm3,suc_p,suc_t, disch_p,disch_t)
+            except (ValueError,TypeError, KeyError, ZeroDivisionError):st.write('your total mol. percent should add up to 100')
     
         if st.button("Reveal Calculations", key = 'calculations_table'):
                 try:
@@ -152,6 +152,38 @@ def main():
                     st.dataframe(df)
                 except (ValueError, TypeError, KeyError, ZeroDivisionError): st.write('Please Check your data')
     else: # Multipule stages
-        st.write('hold')
+        url = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/multi_stage_table.csv'
+        df = pd.read_csv(url, index_col=0)
+        for i in range(stage_no):
+            df['Stage No. '+'{}'.format(i+1)] = 0.00
+        edited_df = st.experimental_data_editor(df)
+        Z_multi = list(range(stage_no))
+        m_wt_multi =  list(range(stage_no))
+        k_multi = list(range(stage_no))
+        poly_eff, adiab_eff, td_adiab, power_kw,m_kg_hr,dd_ds,poly_coef,td_ts = list(range(stage_no)),list(range(stage_no)),list(range(stage_no)),list(range(stage_no)),list(range(stage_no)),list(range(stage_no)),list(range(stage_no)),list(range(stage_no))
+        Q_nm3 = np.array(df.iloc[0,:])
+        suc_p = np.array(df.iloc[1,:])
+        suc_t = np.array(df.iloc[2,:])
+        disch_p = np.array(df.iloc[3,:])
+        disch_t = np.array(df.iloc[4,:])
+        try:
+        df_comp = pd.DataFrame(choose_composition())
+        if st.button("Reveal Calculations", key = 'calculations_table22'):
+            edited_df = pd.DataFrame(edited_df)
+            url = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/compressor_table.csv'
+            df = pd.read_csv(url, index_col=0)
+            for i in range(2):
+                df_comp_new, Z_i, M_wt_i,K_i = k_calculations(df_comp,edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i])
+                Z_multi[i] = Z_i
+                m_wt_multi[i] = M_wt_i
+                k_multi[i] = K_i
+                poly_eff[i], adiab_eff[i], td_adiab[i], power_kw[i],m_kg_hr[i],dd_ds[i],poly_coef[i],td_ts[i] =   calculations(edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],m_wt_multi[i],Z_multi[i],k_multi[i])
+                
+                df['Stage No. '+'{}'.format(i+1)] = [edited_df.iloc[0,i],m_kg_hr[i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],td_adiab[i], power_kw[i],m_wt_multi[i],Z_multi[i],k_multi[i],dd_ds[i],td_ts[i],poly_coef[i],poly_eff[i], adiab_eff[i]]
+            st.dataframe(df)
+            
+        except (ValueError,TypeError, KeyError, ZeroDivisionError):st.write('Please Check your input data!')
+        
+
 if __name__ == '__main__':
     main()
