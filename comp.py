@@ -167,20 +167,20 @@ def main():
         disch_p = np.array(df.iloc[3,:])
         disch_t = np.array(df.iloc[4,:])
         try:
-        df_comp = pd.DataFrame(choose_composition())
-        if st.button("Reveal Calculations", key = 'calculations_table22'):
-            edited_df = pd.DataFrame(edited_df)
-            url = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/compressor_table.csv'
-            df = pd.read_csv(url, index_col=0)
-            for i in range(2):
-                df_comp_new, Z_i, M_wt_i,K_i = k_calculations(df_comp,edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i])
-                Z_multi[i] = Z_i
-                m_wt_multi[i] = M_wt_i
-                k_multi[i] = K_i
-                poly_eff[i], adiab_eff[i], td_adiab[i], power_kw[i],m_kg_hr[i],dd_ds[i],poly_coef[i],td_ts[i] =   calculations(edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],m_wt_multi[i],Z_multi[i],k_multi[i])
-                
-                df['Stage No. '+'{}'.format(i+1)] = [edited_df.iloc[0,i],m_kg_hr[i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],td_adiab[i], power_kw[i],m_wt_multi[i],Z_multi[i],k_multi[i],dd_ds[i],td_ts[i],poly_coef[i],poly_eff[i], adiab_eff[i]]
-            st.dataframe(df)
+            df_comp = pd.DataFrame(choose_composition())
+            if st.button("Reveal Calculations", key = 'calculations_table22'):
+                edited_df = pd.DataFrame(edited_df)
+                url = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/compressor_table.csv'
+                df = pd.read_csv(url, index_col=0)
+                for i in range(2):
+                    df_comp_new, Z_i, M_wt_i,K_i = k_calculations(df_comp,edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i])
+                    Z_multi[i] = Z_i
+                    m_wt_multi[i] = M_wt_i
+                    k_multi[i] = K_i
+                    poly_eff[i], adiab_eff[i], td_adiab[i], power_kw[i],m_kg_hr[i],dd_ds[i],poly_coef[i],td_ts[i] =   calculations(edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],m_wt_multi[i],Z_multi[i],k_multi[i])
+                    
+                    df['Stage No. '+'{}'.format(i+1)] = [edited_df.iloc[0,i],m_kg_hr[i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],td_adiab[i], power_kw[i],m_wt_multi[i],Z_multi[i],k_multi[i],dd_ds[i],td_ts[i],poly_coef[i],poly_eff[i], adiab_eff[i]]
+                st.dataframe(df)
             
         except (ValueError,TypeError, KeyError, ZeroDivisionError):st.write('Please Check your input data!')
         
