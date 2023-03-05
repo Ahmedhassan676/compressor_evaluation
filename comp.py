@@ -27,7 +27,7 @@ def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
 
 def k_calculations(df,df_comp_table,Q_nm3,suc_p,suc_t, disch_p,disch_t):
         #k = np.sum(df['mol%']*df['cp/cv'])*0.01
-        temperatures = np.array([65.65,106.9])*1.8+ 32 
+        temperatures = np.array([suc_t,disch_t])*1.8+ 32 
         df['y_MCp_suc']=[np.interp(temperatures[0],df_comp_table['Gas'][1:],df_comp_table['{}'.format(compound)][1:]) for compound in df.index]
         suc_MCp = (df['mol%']*df['y_MCp_suc']).sum()*0.01
         k_suc = suc_MCp/(suc_MCp-1.986)
