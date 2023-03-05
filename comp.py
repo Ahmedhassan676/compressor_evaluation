@@ -4,6 +4,26 @@ import streamlit as st
 
 url_1 = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/comp.csv'
 df_comp_table = pd.read_csv(url_1)
+
+def Z_calculations(df,t_suc,p_suc):
+        pc = (df['mol%']*df['Pc']).sum() * 0.01
+        tc = (df['mol%']*(df['Tc']+460)).sum() * 0.01  
+        Tr = (t_suc*1.8 + 32+460)/tc
+        Pr = (p_suc +1.03323)*14.2233/pc
+        A = [1,0.31506237,-1.04670990,-0.57832729,0.53530771,-0.61232032,-0.10488813,0.68157001,0.68446549]
+        rho = (0.27*Pr)/Tr
+        Z = 1
+        error = 10
+        y = 1/0.84
+        while error > 0.001:
+            part_1 = (A[1]+(A[2]/Tr)+(A[3]/(Tr**3)))*rho*y
+            part_2 = (A[4]+(A[5]/Tr))*(rho**2)*(y**2)
+            part_3 = ((A[5]*A[6]*(rho**5)*(y**5))/Tr)
+            part_4 = (A[7]*(rho**3)*(y**3))/((Tr**3)*(1+(A[8]*(rho**2)*(y**2)))*np.exp(-A[8]*(rho**2)*(y**2)))
+            Z = A[0]+part_1+part_2+ part_3 + part_4 
+            error = abs(Z-(1/y))
+            y = 1/Z 
+        return Z
 def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
         m_kg_hr = Q_nm3*m_wt*0.0446098580359918482953956685434
         suc_p = suc_p + 1.03323
@@ -28,10 +48,10 @@ def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
 def k_calculations(df,df_comp_table,Q_nm3,suc_p,suc_t, disch_p,disch_t):
         #k = np.sum(df['mol%']*df['cp/cv'])*0.01
         temperatures = np.array([suc_t,disch_t])*1.8+ 32 
-        df['y_MCp_suc']=[np.interp(temperatures[0],df_comp_table['Gas'][1:],df_comp_table['{}'.format(compound)][1:]) for compound in df.index]
+        df['y_MCp_suc']=[np.interp(temperatures[0],df_comp_table['Gas'][3:],df_comp_table['{}'.format(compound)][3:]) for compound in df.index]
         suc_MCp = (df['mol%']*df['y_MCp_suc']).sum()*0.01
         k_suc = suc_MCp/(suc_MCp-1.986)
-        df['y_MCp_disch']=[np.interp(temperatures[1],df_comp_table['Gas'][1:],df_comp_table['{}'.format(compound)][1:]) for compound in df.index]
+        df['y_MCp_disch']=[np.interp(temperatures[1],df_comp_table['Gas'][3:],df_comp_table['{}'.format(compound)][3:]) for compound in df.index]
         disch_MCp = (df['mol%']*df['y_MCp_disch']).sum()*0.01
         k_disch = disch_MCp/(disch_MCp-1.986)
         k = (k_suc + k_disch)/2
@@ -46,16 +66,11 @@ def k_calculations(df,df_comp_table,Q_nm3,suc_p,suc_t, disch_p,disch_t):
         density_lb_ft3 = [((Q_nm3*m_wt*0.044)/q_m3hr[num1])*0.062428 for num1 in range(2)]
         p = (np.array(p)+1) * 14.2233
         t = np.array(t)*1.8 + 491.67
-        Z = [0,0]
-
-        
-        for j in range(2):
-            Z[j] = (m_wt*p[j])/(10.73*t[j]*density_lb_ft3[j])
-        z =  sum(Z)/2
+        z = Z_calculations(df,suc_t,suc_p)
         return df, z, m_wt, k
 def choose_composition():
             
-            df = pd.DataFrame({'Composition/property':df_comp_table.columns[1:],'mol%':np.zeros(len(df_comp_table.columns)-1), 'm.wt':df_comp_table.iloc[0,1:]})
+            df = pd.DataFrame({'Composition/property':df_comp_table.columns[1:],'mol%':np.zeros(len(df_comp_table.columns)-1), 'm.wt':df_comp_table.iloc[0,1:],'Pc':df_comp_table.iloc[1,1:],'Tc':df_comp_table.iloc[2,1:]})
             try:
                 sum_of_comp = 0 
                 c1,c2,c3,c15,c4,c5,c6,c7,c8,c9,c16,c10,c11,c13,c14,nh3 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
