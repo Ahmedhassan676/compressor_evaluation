@@ -66,7 +66,9 @@ def k_calculations(df,df_comp_table,Q_nm3,suc_p,suc_t, disch_p,disch_t):
         density_lb_ft3 = [((Q_nm3*m_wt*0.044)/q_m3hr[num1])*0.062428 for num1 in range(2)]
         p = (np.array(p)+1) * 14.2233
         t = np.array(t)*1.8 + 491.67
-        z = Z_calculations(df,suc_t,suc_p)
+        z1 = Z_calculations(df,suc_t,suc_p)
+        z2 = Z_calculations(df,disch_t,disch_p)
+        z = (z1+z2)*0.5
         return df, z, m_wt, k
 def choose_composition():
             
