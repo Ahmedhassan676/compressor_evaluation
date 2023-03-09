@@ -46,7 +46,7 @@ def calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k):
         return poly_eff, adiab_eff, td_adiab, power_kw,m_kg_hr,dd_ds,poly_coef,td_ts
 
 def k_calculations(df,df_comp_table,Q_nm3,suc_p,suc_t, disch_p,disch_t):
-        #k = np.sum(df['mol%']*df['cp/cv'])*0.01
+        
         temperatures = np.array([suc_t,disch_t])*1.8+ 32 
         df['y_MCp_suc']=[np.interp(temperatures[0],df_comp_table['Gas'][3:],df_comp_table['{}'.format(compound)][3:]) for compound in df.index]
         suc_MCp = (df['mol%']*df['y_MCp_suc']).sum()*0.01
@@ -75,8 +75,8 @@ def choose_composition():
             df = pd.DataFrame({'Composition/property':df_comp_table.columns[1:],'mol%':np.zeros(len(df_comp_table.columns)-1), 'm.wt':df_comp_table.iloc[0,1:],'Pc':df_comp_table.iloc[1,1:],'Tc':df_comp_table.iloc[2,1:]})
             try:
                 sum_of_comp = 0 
-                c1,c2,c3,c15,c4,c5,c6,c7,c8,c9,c16,c10,c11,c13,c14,nh3 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-                options_list = [df_comp_table.columns[i] for i in [22,1,4,3,6,11,10,13,15,20,21,24,25,23,18,17]]
+                c1,c2,c3,c15,c4,c5,c6,c7,c8,c9,c16,c10,c11,c13,c14,nh3,h2o = 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                options_list = [df_comp_table.columns[i] for i in [22,1,4,3,6,11,10,13,15,20,21,24,25,23,18,17,19]]
                 while sum_of_comp != 100:
                     options = st.multiselect(
                     'Select your components', options_list
@@ -113,9 +113,11 @@ def choose_composition():
                         c14 = st.number_input('air%', key = 'c14')
                     if df_comp_table.columns[17] in options:
                         nh3 = st.number_input('Ammonia%', key = 'nh3')
-                    if c1 or c2 or c3 or c15 or c4 or c5 or c6 or c7 or c8 or c9 or c16 or c10 or c11 or c13 or c14 or nh3:
+                    if df_comp_table.columns[19] in options:
+                        h2o = st.number_input('Water vapor%', key = 'h2o')
+                    if c1 or c2 or c3 or c15 or c4 or c5 or c6 or c7 or c8 or c9 or c16 or c10 or c11 or c13 or c14 or nh3 or h2o:
                         c = []
-                        for i in (c1,c2,c3,c15,c4,c5,c6,c7,c8,c9,c16,c10,c11,c13,c14,nh3):
+                        for i in (c1,c2,c3,c15,c4,c5,c6,c7,c8,c9,c16,c10,c11,c13,c14,nh3,h2o):
                             c.append(i)
                         
                         for (i,j) in zip(options_list,c):
