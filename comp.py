@@ -227,7 +227,7 @@ def main():
                         df['Stage No. '+'{}'.format(i+1)] = [edited_df.iloc[0,i],m_kg_hr[i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],td_adiab[i], power_kw[i],m_wt_multi[i],Z_multi[i],k_multi[i],dd_ds[i],td_ts[i],poly_coef[i],poly_eff[i], adiab_eff[i]]
                     st.dataframe(df)
                 
-        #except (ValueError,TypeError, KeyError, ZeroDivisionError, UnboundLocalError):st.write('Please Check your input data!')
+        except (ValueError,TypeError, KeyError, UnboundLocalError):st.write('Please Check your input data!')
         except ZeroDivisionError: pass
 
 if __name__ == '__main__':
