@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-url_1 = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/comp.csv'
+url_1 = 'http://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/comp.csv'
 df_comp_table = pd.read_csv(url_1)
 
 def Z_calculations(df,t_suc,p_suc):
@@ -59,11 +59,11 @@ def k_calculations(df,df_comp_table,Q_nm3,suc_p,suc_t, disch_p,disch_t):
         m_wt = np.sum(df['mol%']*df['m.wt'])*0.01
         df1= pd.DataFrame({'mol%':100,'m.wt':m_wt,'cp/cv':k}, index=['Total'])
         df = df[df['mol%'] != 0].sort_values(by='mol%', ascending=False).append(df1)
-        SGr = m_wt/29
+        
         p = [suc_p,disch_p]
         t = [suc_t,disch_t]
-        q_m3hr = [Q_nm3*((t[num]+273.15)/(273.15))*((1.03323)/(p[num]+ 1.03323)) for num in range(2)]
-        density_lb_ft3 = [((Q_nm3*m_wt*0.044)/q_m3hr[num1])*0.062428 for num1 in range(2)]
+        
+        
         p = (np.array(p)+1) * 14.2233
         t = np.array(t)*1.8 + 491.67
         z1 = Z_calculations(df,suc_t,suc_p)
@@ -176,13 +176,13 @@ def main():
         if st.button("Reveal Calculations", key = 'calculations_table'):
                 try:
                     poly_eff, adiab_eff, td_adiab, power_kw,m_kg_hr,dd_ds,poly_coef,td_ts =   calculations(Q_nm3, suc_p,suc_t, disch_p,disch_t,m_wt,z,k)
-                    url = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/compressor_table.csv'
+                    url = 'http://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/compressor_table.csv'
                     df = pd.read_csv(url, index_col=0)
                     df['Calculations'] = [Q_nm3,m_kg_hr,suc_p, suc_t, disch_p,disch_t,td_adiab, power_kw,m_wt,z,k,dd_ds,td_ts,poly_coef,poly_eff, adiab_eff]
                     st.dataframe(df)
-                except (ValueError, TypeError, KeyError, ZeroDivisionError): st.write('Please Check your data')
+                except (ValueError, TypeError, KeyError, ZeroDivisionError, UnboundLocalError): st.write('Please Check your data')
     else: # Multipule stages
-        url = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/multi_stage_table.csv'
+        url = 'http://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/multi_stage_table.csv'
         df = pd.read_csv(url, index_col=0)
         for i in range(stage_no):
             df['Stage No. '+'{}'.format(i+1)] = 0.00
@@ -197,23 +197,38 @@ def main():
         disch_p = np.array(df.iloc[3,:])
         disch_t = np.array(df.iloc[4,:])
         try:
-            df_comp = pd.DataFrame(choose_composition())
-            if st.button("Reveal Calculations", key = 'calculations_table22'):
-                edited_df = pd.DataFrame(edited_df)
-                url = 'https://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/compressor_table.csv'
-                df = pd.read_csv(url, index_col=0)
-                for i in range(2):
-                    df_comp_new, Z_i, M_wt_i,K_i = k_calculations(df_comp,df_comp_table,edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i])
-                    Z_multi[i] = Z_i
-                    m_wt_multi[i] = M_wt_i
-                    k_multi[i] = K_i
-                    poly_eff[i], adiab_eff[i], td_adiab[i], power_kw[i],m_kg_hr[i],dd_ds[i],poly_coef[i],td_ts[i] =   calculations(edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],m_wt_multi[i],Z_multi[i],k_multi[i])
-                    
-                    df['Stage No. '+'{}'.format(i+1)] = [edited_df.iloc[0,i],m_kg_hr[i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],td_adiab[i], power_kw[i],m_wt_multi[i],Z_multi[i],k_multi[i],dd_ds[i],td_ts[i],poly_coef[i],poly_eff[i], adiab_eff[i]]
-                st.dataframe(df)
-            
-        except (ValueError,TypeError, KeyError, ZeroDivisionError):st.write('Please Check your input data!')
-        
+            s2 = st.selectbox('Estimate M.wt, Cp/Cv and Z?',('I already have these values','Yes'), key = 'k_calculations_multi')
+            if s2 == 'I already have these values':
+                m_wt= st.number_input('Molecular weight' , key = 'mwt_multi')
+                z= st.number_input('Compressibility factor', key = 'z_multi')
+                k= st.number_input('Cp/Cv', key = 'k_multi')
+                
+                if st.button("Reveal Calculations", key = 'calculations_table124'):
+                    edited_df = pd.DataFrame(edited_df)
+                    url = 'http://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/compressor_table.csv'
+                    df = pd.read_csv(url, index_col=0)
+                    for i in range(stage_no):
+                        poly_eff[i], adiab_eff[i], td_adiab[i], power_kw[i],m_kg_hr[i],dd_ds[i],poly_coef[i],td_ts[i] =   calculations(edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],m_wt,z,k)
+                        df['Stage No. '+'{}'.format(i+1)] = [edited_df.iloc[0,i],m_kg_hr[i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],td_adiab[i], power_kw[i],m_wt,z,k,dd_ds[i],td_ts[i],poly_coef[i],poly_eff[i], adiab_eff[i]]
+                    st.dataframe(df)
+            else:
+                df_comp = pd.DataFrame(choose_composition())
+                if st.button("Reveal Calculations", key = 'calculations_table22'):
+                    edited_df = pd.DataFrame(edited_df)
+                    url = 'http://raw.githubusercontent.com/Ahmedhassan676/compressor_evaluation/main/compressor_table.csv'
+                    df = pd.read_csv(url, index_col=0)
+                    for i in range(stage_no):
+                        df_comp_new, Z_i, M_wt_i,K_i = k_calculations(df_comp,df_comp_table,edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i])
+                        Z_multi[i] = Z_i
+                        m_wt_multi[i] = M_wt_i
+                        k_multi[i] = K_i
+                        poly_eff[i], adiab_eff[i], td_adiab[i], power_kw[i],m_kg_hr[i],dd_ds[i],poly_coef[i],td_ts[i] =   calculations(edited_df.iloc[0,i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],m_wt_multi[i],Z_multi[i],k_multi[i])
+                        
+                        df['Stage No. '+'{}'.format(i+1)] = [edited_df.iloc[0,i],m_kg_hr[i],edited_df.iloc[1,i],edited_df.iloc[2,i], edited_df.iloc[3,i],edited_df.iloc[4,i],td_adiab[i], power_kw[i],m_wt_multi[i],Z_multi[i],k_multi[i],dd_ds[i],td_ts[i],poly_coef[i],poly_eff[i], adiab_eff[i]]
+                    st.dataframe(df)
+                
+        #except (ValueError,TypeError, KeyError, ZeroDivisionError, UnboundLocalError):st.write('Please Check your input data!')
+        except ZeroDivisionError: pass
 
 if __name__ == '__main__':
     main()
